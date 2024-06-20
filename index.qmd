@@ -1,0 +1,47 @@
+---
+title: "Title Page"
+date: today
+editor_options: 
+  chunk_output_type: console
+bibliography: paper1.bib
+link-citations: true
+csl: entomological-society-of-america-2.csl
+---
+
+**Author:**  
+Jackson Strand  
+425 Meriwether Ave, Bozeman, MT 59718  
+jackson.strand\@student.montana.edu  
+612-354-9303
+
+**Title:**  
+
+
+**Author List and Affiliations:**  
+Jackson R. Strand  
+Department of Land Resources and Environmental Sciences, Montana State University  
+
+David K. Weaver  
+Department of Land Resources and Environmental Sciences, Montana State University  
+
+Robert K. D. Peterson  
+Department of Land Resources and Environmental Sciences, Montana State University  
+
+Tracy Sterling  
+Department of Land Resources and Environmental Sciences, Montana State University 
+
+**Abstract**  
+
+
+**Keywords**  
+Parasitoids, integrated pest management, biocontrol, volatile organic compounds, antennography
+
+\newpage
+
+
+
+
+
+
+
+

@@ -1,0 +1,41 @@
+project:
+  type: book
+  output-dir: docs
+
+book:
+  title: "Strand et al 2024: Volatiles"
+  author: "Jackson Strand"
+  date: today
+  chapters:
+    - index.qmd
+
+  search: true
+  favicon: img/logo.png
+  repo-url: https://github.com/jstrand894/Strand_etal_2024_vol
+  downloads: [docx, pdf]
+
+# bibliography: references.bib
+
+format:
+  html:
+    title-block-banner: "#0e1d4e"
+    title-block-text-color: "#e69b19"
+    title-block-text-size: 5px
+    toc: true
+    code-block-bg: true
+    code-block-border-left: "#1abcd9"
+    # highlight-style: atom-one
+    code-copy: true
+    code-fold: false
+    code-overflow: wrap
+    # code-tools: true
+    code-link: true
+    css: [styles.css, _box.scss]
+  pdf:
+    pdf-engine: xelatex
+    documentclass: scrreprt
+  docx:
+    reference-doc: custom-reference.docx
+    toc: false
+execute: 
+  freeze: auto
