@@ -1,0 +1,116 @@
+---
+title: "Y Tubes"
+editor_options: 
+  chunk_output_type: console
+---
+
+
+```{r library}
+library(readxl)
+library(tidyverse)
+library(gridExtra)
+library(glue)
+library(ggsignif)
+```
+
+```{r}
+ytubes <-
+read_excel("yTubes.xlsx")
+
+ytubes_analysis <-
+  ytubes %>%
+  mutate(trial = paste(plus, minus, sep = "-")) %>%
+  dplyr::select(-c(plus, minus, x_count, date)) %>%
+  group_by(species, trial) %>%
+  reframe(plus_count = sum(plus_count),
+          minus_count = sum(minus_count)) %>%
+  filter(species == "lissogaster",
+         trial == "ww-blank") %>%
+  dplyr::select(-c(species, trial))
+
+ytubes_analysis %>%
+  chisq.test()
+
+ytubes_plot_data <-
+  ytubes %>%
+  mutate(trial = paste(plus, minus, sep = "-")) %>%
+  dplyr::select(-date, -plus, -minus, -x_count) %>%
+  pivot_longer(-c(species, trial),
+               names_to = "variable",
+               values_to = "value") %>%
+  mutate(variable = ifelse(grepl("minus", variable),
+                           str_extract(trial, "(?<=-).*$"),
+                           str_extract(trial, "^[^-]+"))) %>%
+  group_by(species, trial, variable) %>%
+  reframe(value = sum(value)) %>%
+  mutate(variable = case_when(variable == "blank" ~ "Pure Air",
+                              variable == "ww" ~ "Winter Wheat",
+                              variable == "brome" ~ "B. inermis",
+                              TRUE ~ variable)) %>%
+  mutate(variable = factor(variable, 
+                           levels = c("B. inermis", 
+                                      "Winter Wheat", 
+                                      "Pure Air"))) 
+```
+
+
+```{r facet wrap plot}
+ytubes_plot_data %>%
+  mutate(species = if_else(species == "lissogaster",
+                           "B. lissogaster",
+                           "B. cephi")) %>%
+  ggplot() +
+  geom_bar(stat = "identity",
+           aes(x = variable, y = value, fill = species),
+           position = position_dodge(),
+           color = "black") +
+  facet_grid(species~trial, scale = "free_x") +
+  theme_bw() +
+  scale_fill_brewer(palette = "Greys") +
+  scale_x_discrete(labels = c(expression(italic("B. inermis")),
+                              "Winter Wheat",
+                              "Pure Air")) +
+  labs(y = "Number of Females",
+       x = NULL,
+       fill = NULL) +
+  theme(strip.text.y = element_text(face = "italic"),
+        strip.text.x = element_blank(),
+        strip.background.x = element_blank(),
+        legend.position = "none",
+        panel.grid.major.x = element_blank())
+```
+
+
+
+```{r significance star}
+# with significance star
+ytubes_plot_data %>%
+  filter(species == "lissogaster",
+         trial == "brome-blank") %>%
+  ggplot() +
+  geom_bar(stat = "identity",
+           color = "black",
+           fill = "white",
+           aes(x = variable, y = value)) +
+  theme_bw() +
+  theme(strip.text.x = element_text(size=0)) +
+  scale_fill_brewer(palette = "Greys") +
+  labs(x = NULL,
+       y = "Number of females") +
+  geom_signif(aes(x = variable, 
+                  y = value),
+              comparisons = list(c("B. inermis", "Pure Air")), 
+              annotations = c("***"), 
+              textsize = 3.5, 
+              tip_length = 0.02)
+
+```
+
+
+```{r total females used}
+ytubes_plot_data %>%
+  group_by(species) %>%
+  reframe(sum = sum(value))
+```
+
+

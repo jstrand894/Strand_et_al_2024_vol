@@ -1,0 +1,213 @@
+---
+title: "volatiles"
+editor_options: 
+  chunk_output_type: console
+---
+
+
+```{r libraries}
+library(tidyverse)
+library(readxl)
+library(compositions) # clr
+library(plotly)
+library(vegan)
+```
+
+```{r clr_volatiles}
+# volatile data
+all_volatiles <-
+  read_excel("/Users/jacksonstrand/Library/CloudStorage/OneDrive-MontanaStateUniversity/Data/BWW/Greenhouse\ Volatiles/BWW\ 2023/BWW\ 2023\ Results.xlsx", sheet = "proc") %>%
+  rename("sample" = "Sample",
+         "sample_id" = "sample.id") %>%
+  group_by(sample)
+
+# meta data
+meta_data <-
+  read_excel("/Users/jacksonstrand/Library/CloudStorage/OneDrive-MontanaStateUniversity/Data/BWW/Greenhouse\ Volatiles/BWW\ 2023/BWW\ 2023\ Results.xlsx", sheet = "meta.data") %>%
+  filter(is.na(remove)) %>%
+  dplyr::select(Sample, sample_id, rep, vcs.loc, zadoks.nodes, inf, v.r, p.type) %>%
+  rename("sample" = "Sample")
+
+# calculate ng/g/hr
+test <-
+all_volatiles %>%
+  dplyr::select(sample, rep, sample_id, 
+                compound, area, hours, 
+                std.area, biomass) %>%
+  # calculate ng/g/hr
+  group_by(sample, compound) %>%
+  mutate(ngghr = (30/std.area*area)/biomass/hours) %>%
+  na.omit() %>%
+  # transform using log2
+  # mutate(ngghr = log(ngghr + 1.01, 2)) %>%
+  dplyr::select(-c(area, hours, std.area,
+                   biomass, rep, sample_id)) %>%
+  # combine duplicates
+  group_by(sample,compound) %>%
+  reframe(sample,compound, ngghr = sum(ngghr)) %>%
+  distinct() %>%
+  # pivot wider to get 0 values to appear
+  pivot_wider(names_from = "compound",
+              values_from = "ngghr",
+              values_fill = list(ngghr = 0)) %>%
+  column_to_rownames("sample") %>%
+  clr() %>%
+  rda(center = TRUE, scale = FALSE) %>%
+  summary()
+
+ordiplot(test, display = "sites", type = "n")
+points(test, display = "sites")
+
+test$sites[,1:2]
+
+# transform using CLR
+clr_volatiles <-
+all_volatiles %>%
+  dplyr::select(sample, 
+                compound, ngghr) %>%
+  group_by(sample,
+           compound) %>%
+  reframe(sample,
+          compound, ngghr = sum(ngghr)) %>%
+  distinct() %>% na.omit() %>%
+  mutate(ngghr = log(ngghr + 1.01, 2)) %>%
+  pivot_wider(names_from = "compound",
+              values_from = "ngghr",
+              values_fill = list(ngghr = 0)) %>%
+  replace(is.na(.), 0)  %>% # double check to make sure all NA are now 0
+  column_to_rownames("sample") %>%
+  clr() %>%
+  as.data.frame() %>%
+  rownames_to_column("sample") %>%
+  as_tibble() %>%
+  pivot_longer(-c(sample),
+               names_to = "compound",
+               values_to = "ngghr") %>%
+  # many of the values are negative. lets add 5 to everything 
+  mutate(ngghr = ngghr + 2.5) %>%
+  pivot_wider(names_from = "compound",
+              values_from = "ngghr") 
+```
+
+```{r}
+
+ggplotly(all_volatiles %>%
+  dplyr::select(sample, rep, area,
+                compound, ngghr) %>%
+  na.omit() %>%
+  filter(compound == "standard") %>%
+  distinct() %>%
+  ggplot() +
+  geom_bar(stat = "identity",
+           aes(x = sample, y = ngghr, fill = rep)))
+```
+
+```{r clr_meta}
+clr_meta <-
+clr_volatiles %>%
+  left_join(meta_data, by = "sample") %>%
+  pivot_longer(-c(sample, sample_id, rep, 
+                  vcs.loc, zadoks.nodes, 
+                  inf, v.r, p.type),
+               names_to = "compound",
+               values_to = "ngghr")
+  
+```
+
+```{r bar_plots}
+bar_plot_data <-
+clr_meta %>%
+  group_by(compound, p.type, inf) %>%
+  mutate(count = n(),
+         average = mean(ngghr),
+         sd = sd(ngghr),
+         se = (sd/sqrt(count))) %>%
+  reframe(sample, compound,
+          mean = mean(average),
+          sd = mean(sd),
+          se = mean(se)) %>%
+  distinct()
+
+bar_plot_data %>%
+  ggplot() +
+  geom_bar(stat = "identity",
+           aes(x = inf,
+               y = mean,
+               fill = p.type),
+           position = position_dodge()) +
+  geom_errorbar(aes(x = inf,
+                    group = p.type,
+                    ymin = mean - se,
+                    ymax = mean + se),
+                position = position_dodge(width = 0.9),
+                width = 0.5) +
+  facet_wrap(~compound, scales = "free_y") +
+  theme_bw() +
+  labs(y = "CLR(log(ng/g/hr)",
+       x = NULL)
+  
+```
+
+```{r PCA}
+pca_results <-
+clr_volatiles %>%
+  dplyr::select(-sample) %>%
+  prcomp(scale = T)
+
+scores <- as.data.frame(pca_results$x[,1:3])
+loadings <- as.data.frame(pca_results$rotation)
+variance <- as.data.frame(pca_results$sdev^2)
+
+# add scores to clr_volatiles data set
+data_plus_pca <-
+  clr_volatiles %>%
+    cbind(scores)
+
+# scree plot to assess the number of PCs needed - 2
+plot(pca_results, type = "l", main = "Scree Plot")
+
+PC1 <- pca_results$x[,1]
+PC2 <- pca_results$x[,2]
+
+
+loadings %>%
+  dplyr::select(PC1, PC2) %>%
+  rownames_to_column("compound")
+
+model_data_all <- data.frame(PC1, PC2, meta_data)
+model_data_all <-
+model_data_all %>%
+  unite(inf_p.type, inf, p.type, sep = "_") %>%
+  as.tibble()
+
+ggplot(data = model_data_all) +
+  geom_point(aes(x = PC1, 
+                 y = PC2, 
+                 color = inf_p.type)) +
+  stat_ellipse(aes(x = PC1, y = PC2,
+                   color = inf_p.type))
+
+
+```
+
+
+
+
+```{r}
+volatiles_2022 <-
+read_excel("/Users/jacksonstrand/Library/CloudStorage/OneDrive-MontanaStateUniversity/Data/BWW/Greenhouse\ Volatiles/BWW\ 2022/2022\ BWW.xlsx", 
+           sheet = "Proc GCMS")
+
+volatiles_2022 %>%
+  dplyr::select(sample.id, area,
+                compound, ngghr,) %>%
+  na.omit() %>%
+  filter(compound == "standard") %>%
+  distinct() %>%
+  ggplot() +
+  geom_bar(stat = "identity",
+           aes(x = sample.id, y = area))
+  
+```
+
+

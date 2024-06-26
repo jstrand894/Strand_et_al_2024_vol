@@ -8,6 +8,9 @@ book:
   date: today
   chapters:
     - index.qmd
+    - intro.qmd
+    - methods.qmd
+    # - volatiles.qmd
 
   search: true
   favicon: img/logo.png

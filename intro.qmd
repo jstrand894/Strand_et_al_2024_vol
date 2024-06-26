@@ -1,0 +1,17 @@
+---
+title: "Introduction"
+editor_options: 
+  chunk_output_type: console
+bibliography: paper2.bib
+link-citations: true
+csl: entomological-society-of-america-2.csl
+# suppress-bibliography: true
+---
+
+Volatile organic compounds (VOCs) in plants are a diverse group of organic chemicals that plants produce and release into the atmosphere to communicate wth other organisms in their environment. These compounds can evaporate easily at room temperature due to their high vapor pressure. Volatile compounds are usually lipophilic liquids with high vapor pressures, allowing them to easily cross membranes and be released into the atmosphere or soil if no diffusion barrier is present [@Dudareva]. 
+
+Significant research has been conducted on the production of both passive [@Kemp1984; @Kemp1986; @Gianoli1997; @Piesik2006] and induced volatiles chemicals [@Perez2008] by wheat.  
+
+Recent research has shown populations of non-native grasses such as *Agropyron cristatum*, *Bromus tectorum*, *Bromus inermis*, *Elymus trachycaulus*, and *Thinopyrum intermedium* in unmanaged areas host WSS and most also host the *Bracon* spp. parasitoids that use WSS [@Mendoza2006; @Peirce2021; @Rand2024]. We find investigating *B. inermis* holds the greatest potential, as it has been shown to be a quality initially-accepted host for WSS oviposition while also leading to high larval mortality later on [@Seamans1928; @Farstad1945]. However, there is a lack of information regarding the similarity of *B. inermis* to neighboring cultivated crops in terms of organic volatile profiles. 
+
+Smooth brome (*Bromus inermis* Leyss) is a Eurasian cool-season rhizomatous grass introduced to the United States in 1884 [@Bolwahn2011]. smooth brome was originally thought of as potentially useful as a trap crop in order to combat the growing WSS problem with cultural control practices [@Criddle1922; @Seamans1928; @Farstad1945; @Beres2011a]. Due to its relatively low agricultural value and propensity to form monocultures and outcompete many native grasses, smooth brome is categorized as invasive in some habitats [@Carlson1985; @Willson2000; @Dillemuth2008]. However, smooth brome still holds considerable ecological and economic value due to its late senescence and WSS antibiosis properties [@Otfinowski2006; @Rand2024].
